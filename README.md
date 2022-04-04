@@ -26,7 +26,7 @@ What is the expected number of unoccupied squares after 50 rings of the bell? Gi
 
     go test -bench=. -benchtime=50x -benchmem
 
-> "-benchtime=50x" sets the explicit iteration count to 50
+> "-benchtime=50x" sets the explicit iteration count to 50 to shorten the benchmark execution time
 
 *Output*
 

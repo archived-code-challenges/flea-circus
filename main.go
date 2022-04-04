@@ -13,9 +13,11 @@ const (
 	gridXSize = 30
 	gridYSize = 30
 
+	// bellRings sets the number of rings of the bell
 	bellRings = 50
 )
 
+// remove an element of the slice using its index
 func remove(s []string, index int) []string {
 	s[index] = s[len(s)-1]
 	return s[:len(s)-1]
@@ -26,7 +28,7 @@ type Flee struct {
 	Y int
 }
 
-// WARNING the removal needs to be decremental, from last index to first
+// possibleJumps returns the list of available moves that a Flee can perform.
 func (f *Flee) possibleJumps() []string {
 	var possibleJumps = []string{"up", "down", "left", "right"}
 	if f.X == gridXSize-1 {
@@ -45,6 +47,7 @@ func (f *Flee) possibleJumps() []string {
 	return possibleJumps
 }
 
+// jump to one of the available cells randomly.
 func (f *Flee) jump() {
 	jumpTo := f.possibleJumps()
 	switch jumpTo[rand.Intn(len(jumpTo))] {
@@ -63,6 +66,8 @@ type Simulation struct {
 	Flees []Flee
 }
 
+// initialize the simulation by adding one flee to each square. The size of the square is set by
+// multiplying the X and Y axis (gridXSize * gridYSize).
 func (s *Simulation) initialize() {
 	s.Flees = make([]Flee, 0, gridXSize*gridYSize) // ayuda esto a velocidad
 	for x := 0; x < gridXSize; x++ {
@@ -72,6 +77,7 @@ func (s *Simulation) initialize() {
 	}
 }
 
+// run the simulation "bellRings" times.
 func (s *Simulation) run() {
 	for ring := 0; ring < bellRings; ring++ {
 		for i := range s.Flees {
@@ -80,6 +86,8 @@ func (s *Simulation) run() {
 	}
 }
 
+// unusedSquares returns the number of unused squares in a board of gridXSize * gridYSize by
+// checking the position of all the flees contained in a simulation.
 func (s *Simulation) unusedSquares() int {
 	occupiedSquares := make(map[string]struct{})
 	for i := range s.Flees {
@@ -97,21 +105,22 @@ func parseFlags() (runs, workers int) {
 	return *numRuns, *numWorkers
 }
 
-func run(runs, numWorkers int) {
+// run the program "numRuns" times using the given num of "numRuns" and outputs the results.
+func run(numRuns, numWorkers int) {
 	wg := sync.WaitGroup{}
-	wg.Add(runs)
+	wg.Add(numRuns)
 
 	// workers is a limiting channel to control number of concurrent goroutines used
 	workers := make(chan struct{}, numWorkers)
 
 	var sum int64
-	log.Printf("Running %d simulations on %d workers...", runs, numWorkers)
+	log.Printf("Running %d simulations on %d workers...", numRuns, numWorkers)
 	start := time.Now()
 	defer func() {
 		log.Printf("%v elapsed", time.Since(start))
 	}()
 
-	for run := 0; run < runs; run++ {
+	for run := 0; run < numRuns; run++ {
 		workers <- struct{}{}
 
 		go func() { // perform simulations in parallel
@@ -130,7 +139,7 @@ func run(runs, numWorkers int) {
 	wg.Wait()
 
 	// Calculate the average of the simulations performed
-	log.Printf("Average unnoccupied squares after %d simulations: %f", runs, float64(sum)/float64(runs))
+	log.Printf("Average unnoccupied squares after %d simulations: %f", numRuns, float64(sum)/float64(numRuns))
 }
 
 func main() {
