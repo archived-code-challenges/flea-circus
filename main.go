@@ -112,8 +112,9 @@ func run(numRuns, numWorkers int) {
 
 	// workers is a limiting channel to control number of concurrent goroutines used
 	workers := make(chan struct{}, numWorkers)
+	// unusedSquares is used to avoid data races when adding up numbers in concurrent operations
+	unusedSquares := make(chan int64, numRuns)
 
-	var sum int64
 	log.Printf("Running %d simulations on %d workers...", numRuns, numWorkers)
 	start := time.Now()
 	defer func() {
@@ -133,10 +134,16 @@ func run(numRuns, numWorkers int) {
 			s.initialize()
 			s.run() // single simulation run
 
-			sum += int64(s.unusedSquares())
+			unusedSquares <- int64(s.unusedSquares())
 		}()
 	}
 	wg.Wait()
+
+	var sum int64
+	close(unusedSquares)
+	for i := range unusedSquares {
+		sum += i
+	}
 
 	// Calculate the average of the simulations performed
 	log.Printf("Average unnoccupied squares after %d simulations: %f", numRuns, float64(sum)/float64(numRuns))

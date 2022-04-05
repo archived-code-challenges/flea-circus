@@ -37,3 +37,9 @@ What is the expected number of unoccupied squares after 50 rings of the bell? Gi
     BenchmarkRun1Worker-12                50          74098303 ns/op        72206676 B/op    1125144 allocs/op
     BenchmarkRun10Workers-12              50         138845500 ns/op        72192206 B/op    1125151 allocs/op
     BenchmarkRun100Workers-12             50         186722515 ns/op        72189076 B/op    1125161 allocs/op
+
+## Race condition checks
+
+Running the program with the race detector enabled displays it's absence of data races
+
+    go run -race main.go --workers=10 --runs=500
